@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Datos pesados o intermedios (los entregables viven en datos/ y resultados/)
+datos/raw/
+datos/cache/
+*.tar.xz
+*.zip
+
+# MySQL local
+mysql-data/
+mysql-files/
+*.err
+*.pid
+
+# Checkpoints de entrenamiento: solo se entrega el adapter final en adapter/
+outputs/
+checkpoints/
+runs/
+wandb/
+*.ckpt
+
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secretos
+.env
+*.key
