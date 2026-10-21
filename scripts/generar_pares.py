@@ -141,15 +141,38 @@ def etiqueta(t):
     return t["pk"][0] if t["pk"] else t["columnas"][0]["nombre"]
 
 
+def _redondear(c, v):
+    if c["tipo"] in ("int", "bigint", "smallint", "mediumint", "tinyint"):
+        return int(v)
+    return round(v, 2)
+
+
 def muestra_num(t, c):
     valores = [float(v) for v in t["muestras"].get(c["nombre"], []) if v is not None]
     if len(valores) < 5:
         return None
     valores.sort()
-    v = valores[len(valores) // 2]
-    if c["tipo"] in ("int", "bigint", "smallint", "mediumint", "tinyint"):
-        return int(v)
-    return round(v, 2)
+    return _redondear(c, valores[len(valores) // 2])
+
+
+def cuantiles(t, c):
+    """Tres umbrales tomados de los datos reales: p25, p50 y p75.
+
+    Variar el umbral multiplica los pares sin repetir la consulta, y mantiene
+    los resultados no vacios porque los valores existen en la tabla.
+    """
+    valores = [float(v) for v in t["muestras"].get(c["nombre"], []) if v is not None]
+    if len(valores) < 5:
+        return []
+    valores.sort()
+    n = len(valores)
+    vistos, salida = set(), []
+    for pos in (n // 4, n // 2, (3 * n) // 4):
+        v = _redondear(c, valores[pos])
+        if v not in vistos:
+            vistos.add(v)
+            salida.append(v)
+    return salida
 
 
 def muestra_txt(t, c):
@@ -207,68 +230,64 @@ def f_conteo_total(esq, rng):
 def f_filtro_numerico(esq, rng):
     for t in esq["tablas"].values():
         etq = etiqueta(t)
-        for c in numericas(t)[:3]:
-            v = muestra_num(t, c)
-            if v is None:
-                continue
-            yield frase(
-                rng,
-                "Muestra %s y %s de %s donde %s sea mayor que %s."
-                % (etq, c["nombre"], t["nombre"], c["nombre"], v),
-                "Devuelve %s y %s de los %s cuyo %s supere %s."
-                % (etq, c["nombre"], cardinal(t), etiqueta_col(c), v),
-            ), "SELECT %s, %s FROM %s WHERE %s > %s" % (
-                etq, c["nombre"], t["nombre"], c["nombre"], v)
+        for c in numericas(t):
+            for v in cuantiles(t, c):
+                yield frase(
+                    rng,
+                    "Muestra %s y %s de %s donde %s sea mayor que %s."
+                    % (etq, c["nombre"], t["nombre"], c["nombre"], v),
+                    "Devuelve %s y %s de los %s cuyo %s supere %s."
+                    % (etq, c["nombre"], cardinal(t), etiqueta_col(c), v),
+                ), "SELECT %s, %s FROM %s WHERE %s > %s" % (
+                    etq, c["nombre"], t["nombre"], c["nombre"], v)
 
 
 def f_top_n(esq, rng):
     for t in esq["tablas"].values():
         etq = etiqueta(t)
-        for c in numericas(t)[:2]:
+        for c in numericas(t):
             if muestra_num(t, c) is None:
                 continue
-            n = rng.choice([3, 5, 10])
-            yield frase(
-                rng,
-                "Devuelve %s y %s de los %d %s con mayor %s, ordenados de mayor a menor."
-                % (etq, c["nombre"], n, cardinal(t), c["nombre"]),
-                "Cuales son los %d %s con el %s mas alto? Devuelve %s y %s ordenados de "
-                "mayor a menor." % (n, cardinal(t), etiqueta_col(c), etq, c["nombre"]),
-            ), "SELECT %s, %s FROM %s ORDER BY %s DESC LIMIT %d" % (
-                etq, c["nombre"], t["nombre"], c["nombre"], n)
+            for n in (3, 5, 10):
+                yield frase(
+                    rng,
+                    "Devuelve %s y %s de los %d %s con mayor %s, ordenados de mayor a "
+                    "menor." % (etq, c["nombre"], n, cardinal(t), c["nombre"]),
+                    "Cuales son los %d %s con el %s mas alto? Devuelve %s y %s ordenados "
+                    "de mayor a menor." % (n, cardinal(t), etiqueta_col(c), etq, c["nombre"]),
+                ), "SELECT %s, %s FROM %s ORDER BY %s DESC LIMIT %d" % (
+                    etq, c["nombre"], t["nombre"], c["nombre"], n)
 
 
 def f_filtro_enum(esq, rng):
     for t in esq["tablas"].values():
-        for c in enums(t)[:2]:
-            valores = valores_enum(c)
-            if not valores:
-                continue
-            v = rng.choice(valores)
-            yield frase(
-                rng,
-                "Cuantos %s tienen %s igual a '%s'? Devuelve solo la cantidad."
-                % (cardinal(t), c["nombre"], v),
-                "Cuenta los registros de %s cuyo %s sea '%s'." % (t["nombre"], c["nombre"], v),
-            ), "SELECT COUNT(*) AS total FROM %s WHERE %s = '%s'" % (
-                t["nombre"], c["nombre"], v)
+        for c in enums(t):
+            for v in valores_enum(c):
+                yield frase(
+                    rng,
+                    "Cuantos %s tienen %s igual a '%s'? Devuelve solo la cantidad."
+                    % (cardinal(t), c["nombre"], v),
+                    "Cuenta los registros de %s cuyo %s sea '%s'."
+                    % (t["nombre"], c["nombre"], v),
+                ), "SELECT COUNT(*) AS total FROM %s WHERE %s = '%s'" % (
+                    t["nombre"], c["nombre"], v)
 
 
 def f_agregado_simple(esq, rng):
     etiquetas = {"AVG": "el promedio", "SUM": "la suma", "MAX": "el valor maximo",
                  "MIN": "el valor minimo"}
     for t in esq["tablas"].values():
-        for c in numericas(t)[:3]:
+        for c in numericas(t):
             if muestra_num(t, c) is None:
                 continue
-            agg = rng.choice(list(etiquetas))
-            yield frase(
-                rng,
-                "Cual es %s de %s en %s? Devuelve un solo valor."
-                % (etiquetas[agg], c["nombre"], t["nombre"]),
-                "Calcula %s de %s para todos los %s."
-                % (etiquetas[agg], etiqueta_col(c), cardinal(t)),
-            ), "SELECT %s(%s) AS resultado FROM %s" % (agg, c["nombre"], t["nombre"])
+            for agg in etiquetas:
+                yield frase(
+                    rng,
+                    "Cual es %s de %s en %s? Devuelve un solo valor."
+                    % (etiquetas[agg], c["nombre"], t["nombre"]),
+                    "Calcula %s de %s para todos los %s."
+                    % (etiquetas[agg], etiqueta_col(c), cardinal(t)),
+                ), "SELECT %s(%s) AS resultado FROM %s" % (agg, c["nombre"], t["nombre"])
 
 
 def f_distintos(esq, rng):
@@ -284,19 +303,16 @@ def f_distintos(esq, rng):
 
 def f_anio(esq, rng):
     for t in esq["tablas"].values():
-        for c in fechas(t)[:2]:
-            disponibles = anios(t, c)
-            if not disponibles:
-                continue
-            anio = rng.choice(disponibles)
-            yield frase(
-                rng,
-                "Cuantos %s tienen %s en el anio %d? Devuelve la cantidad."
-                % (cardinal(t), c["nombre"], anio),
-                "Cuenta los registros de %s cuyo %s sea del anio %d."
-                % (t["nombre"], c["nombre"], anio),
-            ), "SELECT COUNT(*) AS total FROM %s WHERE YEAR(%s) = %d" % (
-                t["nombre"], c["nombre"], anio)
+        for c in fechas(t):
+            for anio in anios(t, c):
+                yield frase(
+                    rng,
+                    "Cuantos %s tienen %s en el anio %d? Devuelve la cantidad."
+                    % (cardinal(t), c["nombre"], anio),
+                    "Cuenta los registros de %s cuyo %s sea del anio %d."
+                    % (t["nombre"], c["nombre"], anio),
+                ), "SELECT COUNT(*) AS total FROM %s WHERE YEAR(%s) = %d" % (
+                    t["nombre"], c["nombre"], anio)
 
 
 def f_booleano(esq, rng):
@@ -382,7 +398,7 @@ def m_suma_por_padre(esq, rng):
     for hijo, col, padre, col_padre in esq["relaciones"]:
         th, tp = esq["tablas"][hijo], esq["tablas"][padre]
         etq = etiqueta(tp)
-        for c in numericas(th)[:2]:
+        for c in numericas(th):
             if muestra_num(th, c) is None:
                 continue
             yield frase(
@@ -400,8 +416,8 @@ def m_suma_por_padre(esq, rng):
 
 def m_promedio_por_enum(esq, rng):
     for t in esq["tablas"].values():
-        for e in enums(t)[:1]:
-            for c in numericas(t)[:2]:
+        for e in enums(t):
+            for c in numericas(t):
                 if muestra_num(t, c) is None:
                     continue
                 yield frase(
@@ -421,38 +437,36 @@ def m_having(esq, rng):
     for hijo, col, padre, col_padre in esq["relaciones"]:
         tp = esq["tablas"][padre]
         etq = etiqueta(tp)
-        n = rng.choice([2, 3, 5])
-        yield frase(
-            rng,
-            "Devuelve %s y la cantidad de %s, solo para los %s que tengan mas de %d."
-            % (etq, legible(hijo), legible(padre), n),
-            "Que %s tienen mas de %d %s? Devuelve %s y la cantidad."
-            % (legible(padre), n, legible(hijo), etq),
-        ), (
-            "SELECT p.%s, COUNT(*) AS total FROM %s h JOIN %s p ON h.%s = p.%s "
-            "GROUP BY p.%s, p.%s HAVING COUNT(*) > %d"
-            % (etq, hijo, padre, col, col_padre, col_padre, etq, n)
-        )
+        for n in (2, 3, 5):
+            yield frase(
+                rng,
+                "Devuelve %s y la cantidad de %s, solo para los %s que tengan mas de %d."
+                % (etq, legible(hijo), legible(padre), n),
+                "Que %s tienen mas de %d %s? Devuelve %s y la cantidad."
+                % (legible(padre), n, legible(hijo), etq),
+            ), (
+                "SELECT p.%s, COUNT(*) AS total FROM %s h JOIN %s p ON h.%s = p.%s "
+                "GROUP BY p.%s, p.%s HAVING COUNT(*) > %d"
+                % (etq, hijo, padre, col, col_padre, col_padre, etq, n)
+            )
 
 
 def m_join_filtro(esq, rng):
     for hijo, col, padre, col_padre in esq["relaciones"]:
         th, tp = esq["tablas"][hijo], esq["tablas"][padre]
         etq_h, etq_p = etiqueta(th), etiqueta(tp)
-        for c in numericas(th)[:2]:
-            v = muestra_num(th, c)
-            if v is None:
-                continue
-            yield frase(
-                rng,
-                "Muestra %s de %s y %s de %s para los registros con %s mayor que %s."
-                % (etq_h, legible(hijo), etq_p, legible(padre), c["nombre"], v),
-                "Devuelve %s y %s de los %s cuyo %s supere %s."
-                % (etq_h, etq_p, legible(hijo), c["nombre"], v),
-            ), (
-                "SELECT h.%s, p.%s FROM %s h JOIN %s p ON h.%s = p.%s WHERE h.%s > %s"
-                % (etq_h, etq_p, hijo, padre, col, col_padre, c["nombre"], v)
-            )
+        for c in numericas(th):
+            for v in cuantiles(th, c):
+                yield frase(
+                    rng,
+                    "Muestra %s de %s y %s de %s para los registros con %s mayor que %s."
+                    % (etq_h, legible(hijo), etq_p, legible(padre), c["nombre"], v),
+                    "Devuelve %s y %s de los %s cuyo %s supere %s."
+                    % (etq_h, etq_p, legible(hijo), c["nombre"], v),
+                ), (
+                    "SELECT h.%s, p.%s FROM %s h JOIN %s p ON h.%s = p.%s WHERE h.%s > %s"
+                    % (etq_h, etq_p, hijo, padre, col, col_padre, c["nombre"], v)
+                )
 
 
 def m_top_padres(esq, rng):
@@ -506,8 +520,8 @@ def m_por_mes(esq, rng):
 
 def m_having_promedio(esq, rng):
     for t in esq["tablas"].values():
-        for e in enums(t)[:1]:
-            for c in numericas(t)[:1]:
+        for e in enums(t):
+            for c in numericas(t):
                 v = muestra_num(t, c)
                 if v is None:
                     continue
@@ -555,7 +569,7 @@ def m_dos_joins(esq, rng):
 def d_sobre_promedio(esq, rng):
     for t in esq["tablas"].values():
         etq = etiqueta(t)
-        for c in numericas(t)[:2]:
+        for c in numericas(t):
             if muestra_num(t, c) is None:
                 continue
             yield frase(
@@ -573,8 +587,8 @@ def d_sobre_promedio(esq, rng):
 def d_sobre_promedio_grupo(esq, rng):
     for t in esq["tablas"].values():
         etq = etiqueta(t)
-        for e in enums(t)[:1]:
-            for c in numericas(t)[:1]:
+        for e in enums(t):
+            for c in numericas(t):
                 if muestra_num(t, c) is None:
                     continue
                 yield frase(
@@ -595,8 +609,8 @@ def d_sobre_promedio_grupo(esq, rng):
 def d_ventana_por_grupo(esq, rng):
     for t in esq["tablas"].values():
         etq = etiqueta(t)
-        for e in enums(t)[:1]:
-            for c in numericas(t)[:1]:
+        for e in enums(t):
+            for c in numericas(t):
                 if muestra_num(t, c) is None:
                     continue
                 yield frase(
@@ -618,8 +632,8 @@ def d_ventana_por_grupo(esq, rng):
 
 def d_porcentaje_del_total(esq, rng):
     for t in esq["tablas"].values():
-        for e in enums(t)[:1]:
-            for c in numericas(t)[:1]:
+        for e in enums(t):
+            for c in numericas(t):
                 if muestra_num(t, c) is None:
                     continue
                 yield frase(
@@ -738,7 +752,7 @@ def d_ranking_padres(esq, rng):
 def d_comparar_con_maximo(esq, rng):
     for t in esq["tablas"].values():
         etq = etiqueta(t)
-        for c in numericas(t)[:1]:
+        for c in numericas(t):
             if muestra_num(t, c) is None:
                 continue
             yield frase(
@@ -815,11 +829,15 @@ PLANTILLAS = [
 
 
 def generar(esq, limite, rng):
+    # Las plantillas faciles se instancian de muchas mas formas que las
+    # dificiles, asi que el tope se ajusta por nivel para que el dataset no
+    # quede dominado por consultas de una sola tabla.
+    topes = {"facil": max(1, limite // 2), "media": limite, "dificil": limite * 2}
     pares, vistos = [], set()
     for nivel, nombre, funcion in PLANTILLAS:
         n = 0
         for pregunta, sql in funcion(esq, rng):
-            if n >= limite:
+            if n >= topes[nivel]:
                 break
             clave = sql.lower()
             if clave in vistos:

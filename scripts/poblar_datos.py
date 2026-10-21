@@ -236,20 +236,61 @@ def _texto(tabla, col, rng, i):
     return ("%s %s %d" % (tabla.rstrip("s").capitalize(), rng.choice(COSAS), i))[:largo]
 
 
+ENTEROS = {
+    "tinyint": (-128, 127),
+    "smallint": (-32768, 32767),
+    "mediumint": (-8388608, 8388607),
+    "int": (-2147483648, 2147483647),
+    "bigint": (-2 ** 63, 2 ** 63 - 1),
+}
+
+
+def _limites(col):
+    """Rango admitido por el tipo de la columna.
+
+    Sin esto, una pista como 'capacidad' genera valores de hasta 200 que un
+    TINYINT rechaza con el error 1264 Out of range value.
+    """
+    if col["tipo"] in ENTEROS:
+        lo, hi = ENTEROS[col["tipo"]]
+        if "unsigned" in col["tipo_completo"]:
+            lo, hi = 0, hi * 2 + 1
+        return lo, hi
+    if col["tipo"] == "decimal":
+        precision = col["precision"] or 10
+        escala = col["escala"] or 0
+        tope = 10 ** (precision - escala) - 1
+        return -tope, tope
+    return None
+
+
 def _numero(col, rng):
     nombre = col["nombre"]
-    for patron, (lo, hi, dec) in RANGOS:
-        if _coincide(patron, nombre):
-            if dec == 0:
-                return rng.randint(int(lo), int(hi))
-            return round(rng.uniform(lo, hi), dec)
+    entero = col["tipo"] in ENTEROS
 
-    if col["tipo"] in ("decimal", "float", "double"):
-        escala = col["escala"] or 2
-        return round(rng.uniform(10, 5000), escala)
-    if col["tipo"] == "tinyint":
-        return rng.randint(1, 20)
-    return rng.randint(1, 100)
+    if _coincide(r"rating", nombre):
+        valor = rng.randint(1, 5) if entero else round(rng.uniform(1, 10), 1)
+    else:
+        valor = None
+        for patron, (lo, hi, dec) in RANGOS:
+            if _coincide(patron, nombre):
+                valor = rng.randint(int(lo), int(hi)) if dec == 0 else round(
+                    rng.uniform(lo, hi), dec)
+                break
+        if valor is None:
+            if col["tipo"] in ("decimal", "float", "double"):
+                valor = round(rng.uniform(10, 5000), col["escala"] or 2)
+            elif col["tipo"] == "tinyint":
+                valor = rng.randint(1, 20)
+            else:
+                valor = rng.randint(1, 100)
+
+    if entero:
+        valor = int(round(valor))
+    limites = _limites(col)
+    if limites:
+        valor = max(limites[0], min(limites[1], valor))
+    return valor
 
 
 def _booleano(rng):
@@ -446,15 +487,22 @@ def _construir_fila(tabla, insertables, fks, unicas, claves, rng, vistos, indice
             valor = _numero(col, rng)
         else:
             valor = _texto(tabla, col, rng, indice)
+            if col["largo"]:
+                valor = valor[: col["largo"]]
 
-        # Las columnas UNIQUE llevan sufijo hasta que el valor no se repita.
-        if (tabla, nombre) in unicas and isinstance(valor, str):
-            intento, original = 0, valor
-            while valor in vistos[nombre]:
-                intento += 1
-                sufijo = str(intento)
-                largo = col["largo"] or 60
-                valor = original[: largo - len(sufijo)] + sufijo
+        # Columnas UNIQUE: el texto lleva sufijo y los numeros se desplazan
+        # hasta encontrar un valor libre.
+        if (tabla, nombre) in unicas and valor is not None:
+            if isinstance(valor, str):
+                intento, original = 0, valor
+                while valor in vistos[nombre]:
+                    intento += 1
+                    sufijo = str(intento)
+                    largo = col["largo"] or 60
+                    valor = original[: largo - len(sufijo)] + sufijo
+            elif isinstance(valor, (int, float)):
+                while valor in vistos[nombre]:
+                    valor += 1
             vistos[nombre].add(valor)
 
         fila[nombre] = valor
