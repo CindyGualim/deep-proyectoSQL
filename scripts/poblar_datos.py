@@ -268,8 +268,15 @@ def _numero(col, rng):
     nombre = col["nombre"]
     entero = col["tipo"] in ENTEROS
 
+    # Algunas pistas significan cosas distintas segun el tipo declarado: un
+    # score entero es una calificacion de 1 a 5 y uno decimal una nota sobre
+    # 100; un peso con poca precision es el de un animal y no el de un furgon.
     if _coincide(r"rating", nombre):
         valor = rng.randint(1, 5) if entero else round(rng.uniform(1, 10), 1)
+    elif _coincide(r"score", nombre):
+        valor = rng.randint(1, 5) if entero else round(rng.uniform(0, 100), 2)
+    elif _coincide(r"peso", nombre) and (col["precision"] or 10) <= 6:
+        valor = round(rng.uniform(1, 60), col["escala"] or 2)
     else:
         valor = None
         for patron, (lo, hi, dec) in RANGOS:
@@ -310,10 +317,15 @@ def _clase_fecha(nombre):
     return "normal"
 
 
-def _fecha_base(nombre, rng):
+def _fecha_base(tabla, nombre, rng):
     clase = _clase_fecha(nombre)
     if clase == "nacimiento":
-        inicio, fin = datetime.date(1955, 1, 1), datetime.date(2007, 12, 31)
+        # Una fecha de nacimiento solo abarca decadas cuando la fila es una
+        # persona; para una mascota o un equipo la ventana es mucho mas corta.
+        if _es_persona(tabla, "nombre"):
+            inicio, fin = datetime.date(1955, 1, 1), datetime.date(2007, 12, 31)
+        else:
+            inicio, fin = datetime.date(2012, 1, 1), datetime.date(2025, 12, 31)
     elif clase == "futuro":
         inicio, fin = datetime.date(2026, 7, 1), datetime.date(2030, 12, 31)
     else:
@@ -321,7 +333,7 @@ def _fecha_base(nombre, rng):
     return inicio + datetime.timedelta(days=rng.randint(0, (fin - inicio).days))
 
 
-def _fechas_de_fila(columnas, rng):
+def _fechas_de_fila(tabla, columnas, rng):
     """Genera las fechas de una fila manteniendo el orden cronologico.
 
     Las columnas de fecha que no son de nacimiento ni de vencimiento se tratan
@@ -342,7 +354,7 @@ def _fechas_de_fila(columnas, rng):
     ]
 
     for col in aparte:
-        valores[col["nombre"]] = _fecha_base(col["nombre"], rng)
+        valores[col["nombre"]] = _fecha_base(tabla, col["nombre"], rng)
 
     anterior = None
     for col in secuencia:
@@ -356,7 +368,7 @@ def _fechas_de_fila(columnas, rng):
             continue
 
         if anterior is None or not isinstance(anterior, datetime.datetime):
-            dia = _fecha_base(col["nombre"], rng)
+            dia = _fecha_base(tabla, col["nombre"], rng)
             momento = datetime.datetime(
                 dia.year, dia.month, dia.day, rng.randint(6, 22), rng.choice([0, 15, 30, 45])
             )
@@ -451,7 +463,7 @@ def poblar(conn, base):
 
 def _construir_fila(tabla, insertables, fks, unicas, claves, rng, vistos, indice):
     fila = {}
-    fechas = _fechas_de_fila(insertables, rng)
+    fechas = _fechas_de_fila(tabla, insertables, rng)
 
     for col in insertables:
         nombre = col["nombre"]
