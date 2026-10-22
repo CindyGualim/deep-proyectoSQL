@@ -19,6 +19,7 @@ Uso:
 """
 
 import argparse
+import collections
 import json
 import pathlib
 import random
@@ -403,8 +404,8 @@ def m_suma_por_padre(esq, rng):
                 continue
             yield frase(
                 rng,
-                "Devuelve %s y la suma de %s de sus %s."
-                % (etq, c["nombre"], legible(hijo)),
+                "Devuelve %s de %s y la suma de %s de sus %s."
+                % (etq, legible(padre), c["nombre"], legible(hijo)),
                 "Para cada %s, calcula el total de %s en %s. Devuelve %s y la suma."
                 % (legible(padre), c["nombre"], legible(hijo), etq),
             ), (
@@ -461,8 +462,9 @@ def m_join_filtro(esq, rng):
                     rng,
                     "Muestra %s de %s y %s de %s para los registros con %s mayor que %s."
                     % (etq_h, legible(hijo), etq_p, legible(padre), c["nombre"], v),
-                    "Devuelve %s y %s de los %s cuyo %s supere %s."
-                    % (etq_h, etq_p, legible(hijo), c["nombre"], v),
+                    "Devuelve %s de %s y %s de %s para los %s cuyo %s supere %s."
+                    % (etq_h, legible(hijo), etq_p, legible(padre), legible(hijo),
+                       c["nombre"], v),
                 ), (
                     "SELECT h.%s, p.%s FROM %s h JOIN %s p ON h.%s = p.%s WHERE h.%s > %s"
                     % (etq_h, etq_p, hijo, padre, col, col_padre, c["nombre"], v)
@@ -736,8 +738,8 @@ def d_ranking_padres(esq, rng):
         c = nums[0]
         yield frase(
             rng,
-            "Devuelve %s, el total de %s y su posicion en el ranking de mayor a menor."
-            % (etq, c["nombre"]),
+            "Devuelve %s de %s, el total de %s de sus %s y su posicion en el ranking de "
+            "mayor a menor." % (etq, legible(padre), c["nombre"], legible(hijo)),
             "Usando una funcion de ventana, ordena los %s por el total de %s y devuelve "
             "%s, el total y la posicion." % (legible(padre), c["nombre"], etq),
         ), (
@@ -757,8 +759,9 @@ def d_comparar_con_maximo(esq, rng):
                 continue
             yield frase(
                 rng,
-                "Devuelve %s, %s y la diferencia entre %s y el valor maximo de la tabla, "
-                "redondeada a 2 decimales." % (etq, c["nombre"], c["nombre"]),
+                "Devuelve %s, %s y la diferencia entre %s y el valor maximo de %s, "
+                "redondeada a 2 decimales."
+                % (etq, c["nombre"], c["nombre"], t["nombre"]),
                 "Para cada %s calcula cuanto le falta a su %s para alcanzar el maximo. "
                 "Devuelve %s, %s y la diferencia redondeada a 2 decimales."
                 % (legible(t["nombre"]), c["nombre"], etq, c["nombre"]),
@@ -828,11 +831,32 @@ PLANTILLAS = [
 ]
 
 
+def columnas_ambiguas(esq):
+    """Columnas FK de tablas que apuntan dos veces a la misma tabla.
+
+    En aerolinea, vuelos.origen y vuelos.destino apuntan a aeropuertos: una
+    pregunta que solo diga "los vuelos de cada aeropuerto" no determina por cual
+    de las dos se une, y ningun modelo puede acertar a adivinarla.
+    """
+    cuenta = collections.Counter((hijo, padre) for hijo, _, padre, _ in esq["relaciones"])
+    return {
+        col for hijo, col, padre, _ in esq["relaciones"] if cuenta[(hijo, padre)] > 1
+    }
+
+
+def desambiguar(pregunta, sql, ambiguas):
+    for col in sorted(ambiguas):
+        if re.search(r"\b%s\b" % re.escape(col), sql) and col not in pregunta:
+            return "%s Relaciona las tablas por %s." % (pregunta, col)
+    return pregunta
+
+
 def generar(esq, limite, rng):
     # Las plantillas faciles se instancian de muchas mas formas que las
     # dificiles, asi que el tope se ajusta por nivel para que el dataset no
     # quede dominado por consultas de una sola tabla.
     topes = {"facil": max(1, limite // 2), "media": limite, "dificil": limite * 2}
+    ambiguas = columnas_ambiguas(esq)
     pares, vistos = [], set()
     for nivel, nombre, funcion in PLANTILLAS:
         n = 0
@@ -843,6 +867,7 @@ def generar(esq, limite, rng):
             if clave in vistos:
                 continue
             vistos.add(clave)
+            pregunta = desambiguar(pregunta, sql, ambiguas)
             pares.append(
                 {"base": esq["base"], "nivel": nivel, "plantilla": nombre,
                  "pregunta": pregunta, "sql": sql}
