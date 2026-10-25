@@ -1,0 +1,150 @@
+commit cac0c4f2893085a500fa550db1cf3e0a0282a7e2
+Author: Cindy Gualim <gua21226@uvg.edu.gt>
+Date:   2026-10-24 18:23:00 -0600
+
+    docs: bitacora, contribuciones y prediccion de EX
+
+ BITACORA.md                     | 198 +++++++++++++++++++++++++++
+ CONTRIBUCIONES.md               |  38 ++++++
+ README.md                       | 164 +++++++++++++++++-----
+ presentacion.md                 | 157 +++++++++++++++++++++
+ presentacion.pdf                | 296 ++++++++++++++++++++++++++++++++++++++++
+ resultados/prediccion_ex.md     |  84 ++++++++++++
+ scripts/generar_presentacion.py | 179 ++++++++++++++++++++++++
+ 7 files changed, 1085 insertions(+), 31 deletions(-)
+
+commit 91a97be9016398df71526043c73f667062d1d813
+Author: GAOV314 <oca231270@uvg.edu.gt>
+Date:   2026-10-24 14:47:00 -0600
+
+    feat(eval): autocorreccion con ejecutar y analisis de errores
+
+ resultados/experimento_inferencia.md |  64 ++++++++++++++++
+ scripts/analizar_errores.py          | 142 +++++++++++++++++++++++++++++++++++
+ solucion.py                          | 127 ++++++++++++++++++++++++++++---
+ 3 files changed, 322 insertions(+), 11 deletions(-)
+
+commit 78293aa415da223d30f8f18955c1d2646f58a9a9
+Author: Cindy Gualim <gua21226@uvg.edu.gt>
+Date:   2026-10-24 10:18:00 -0600
+
+    feat(train): LoRA r8 vs r32 y adapter final
+
+ notebooks/02_entrenamiento.ipynb | 192 ++++++++++++++++++++++++++++++++++
+ resultados/configs_lora.md       |  49 +++++++++
+ scripts/entrenar.py              | 221 +++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 462 insertions(+)
+
+commit 9d002ada9f683a386c6cfc2539f2e8fa1115f10b
+Author: Cindy Gualim <gua21226@uvg.edu.gt>
+Date:   2026-10-23 09:41:00 -0600
+
+    feat(eval): evaluador EX y baseline sin adapter
+
+ notebooks/03_evaluacion.ipynb | 182 +++++++++++++++++++++++++++++++
+ scripts/evaluar.py            | 248 ++++++++++++++++++++++++++++++++++++++++++
+ scripts/test_comparacion.py   |  95 ++++++++++++++++
+ 3 files changed, 525 insertions(+)
+
+commit d27f23c69c48d9ccc44d50575de324868910f344
+Author: GAOV314 <oca231270@uvg.edu.gt>
+Date:   2026-10-22 15:08:00 -0600
+
+    feat: solucion.py con contrato generar_sql
+
+ scripts/test_extraccion.py |  79 ++++++++++++++++++++
+ solucion.py                | 182 +++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 261 insertions(+)
+
+commit 2f400c3831eef3708576764844030798b7d2f570
+Author: Cindy Gualim <gua21226@uvg.edu.gt>
+Date:   2026-10-22 12:16:00 -0600
+
+    feat(datos): validation set propio con 40 preguntas
+
+ datos/validacion/esquemas/hotel.sql        | 79 ++++++++++++++++++++++++++++++
+ datos/validacion/esquemas/veterinaria.sql  | 79 ++++++++++++++++++++++++++++++
+ datos/validacion/esquemas_show_create.json |  4 ++
+ datos/validacion/preguntas.jsonl           | 40 +++++++++++++++
+ scripts/poblar_datos.py                    | 24 ++++++---
+ 5 files changed, 220 insertions(+), 6 deletions(-)
+
+commit 3795ec328c751837e99e491d5bcbae0b2d833382
+Author: Cindy Gualim <gua21226@uvg.edu.gt>
+Date:   2026-10-22 09:32:00 -0600
+
+    feat(datos): validacion por ejecucion y reporte de descartes
+
+ datos/descartes.csv              |   74 ++
+ datos/dev.jsonl                  |   71 ++
+ datos/entrenamiento.jsonl        | 2320 ++++++++++++++++++++++++++++++++++++++
+ datos/esquemas_show_create.json  |   14 +
+ datos/pares_crudos.jsonl         |  504 ++++-----
+ notebooks/01_datos.ipynb         |   58 +-
+ resultados/descartes_resumen.csv |    4 +
+ scripts/generar_pares.py         |   41 +-
+ scripts/validar_pares.py         |  185 +++
+ 9 files changed, 3004 insertions(+), 267 deletions(-)
+
+commit db3a9dc57f84022026e0bfe2126e879953b3e3f9
+Author: GAOV314 <oca231270@uvg.edu.gt>
+Date:   2026-10-21 11:37:00 -0600
+
+    fix(datos): acotar valores al tipo de columna y balancear niveles
+
+ datos/pares_crudos.jsonl | 2464 ++++++++++++++++++++++++++++++++++++++++++++++
+ scripts/generar_pares.py |  218 ++--
+ scripts/poblar_datos.py  |   88 +-
+ 3 files changed, 2650 insertions(+), 120 deletions(-)
+
+commit 742de7db1de8950a602a89b1975b965113c58f82
+Author: GAOV314 <oca231270@uvg.edu.gt>
+Date:   2026-10-21 09:14:00 -0600
+
+    feat(datos): generacion de pares pregunta-SQL
+
+ notebooks/01_datos.ipynb | 160 +++++++++
+ scripts/generar_pares.py | 868 +++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 1028 insertions(+)
+
+commit 04ce606487bb6aa6aaf698862af0d292b62a2f6f
+Author: Cindy Gualim <gua21226@uvg.edu.gt>
+Date:   2026-10-20 17:18:00 -0600
+
+    feat(datos): 12 esquemas propios y carga en MySQL 8.4.10
+
+ datos/esquemas/aerolinea.sql    |  81 +++++++
+ datos/esquemas/banco.sql        |  89 ++++++++
+ datos/esquemas/biblioteca.sql   |  84 ++++++++
+ datos/esquemas/clinica.sql      |  66 ++++++
+ datos/esquemas/ecommerce.sql    |  86 ++++++++
+ datos/esquemas/gym.sql          |  68 ++++++
+ datos/esquemas/hr.sql           |  83 ++++++++
+ datos/esquemas/inmobiliaria.sql |  78 +++++++
+ datos/esquemas/logistica.sql    |  75 +++++++
+ datos/esquemas/restaurante.sql  |  65 ++++++
+ datos/esquemas/streaming.sql    |  71 +++++++
+ datos/esquemas/universidad.sql  |  86 ++++++++
+ scripts/cargar_esquemas.py      |  87 ++++++++
+ scripts/db.py                   |  61 ++++++
+ scripts/mysql_setup.sh          |  92 ++++++++
+ scripts/poblar_datos.py         | 461 ++++++++++++++++++++++++++++++++++++++++
+ 16 files changed, 1633 insertions(+)
+
+commit 8bdc0bb3bb0b93858ec5bf46b7142ff75d55cfc6
+Author: Cindy Gualim <gua21226@uvg.edu.gt>
+Date:   2026-10-20 15:42:00 -0600
+
+    chore: estructura del proyecto y requirements
+
+ .gitignore                         | 38 ++++++++++++++++
+ README.md                          | 91 ++++++++++++++++++++++++++++++++++++++
+ adapter/.gitkeep                   |  0
+ config.json                        |  6 +++
+ datos/esquemas/.gitkeep            |  0
+ datos/validacion/esquemas/.gitkeep |  0
+ notebooks/.gitkeep                 |  0
+ requirements.txt                   | 20 +++++++++
+ resultados/.gitkeep                |  0
+ scripts/.gitkeep                   |  0
+ 10 files changed, 155 insertions(+)
