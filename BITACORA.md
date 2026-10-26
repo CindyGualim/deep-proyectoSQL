@@ -190,9 +190,11 @@ Commit: `feat(eval): autocorreccion con ejecutar y analisis de errores`
 
 ---
 
-## Pendiente — Commits de Gadiel Ocana
+## Estado al cierre de esta bitacora
+**Autor:** Cindy Gualim
 
-Este repositorio todavia no tiene commits del segundo integrante. El enunciado
-exige commits de ambas cuentas y penaliza con 0 en colaboracion si falta uno.
-Las entradas de esta bitacora que corresponden a su trabajo deben escribirse y
-firmarse por el, no por la otra integrante.
+El repositorio tiene 13 commits de ambas cuentas. Queda pendiente el
+entrenamiento en Colab: `adapter/` esta vacio y las tablas de resultados de
+`configs_lora.md` y `experimento_inferencia.md` siguen sin numeros. Las
+hipotesis de ambos documentos si estan escritas antes de entrenar, que es lo que
+pide el enunciado.

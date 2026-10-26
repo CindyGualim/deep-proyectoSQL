@@ -1,3 +1,26 @@
+commit bc6783952e96f4e8c8d8ecdcbb354e796a8df1e4
+Author: MishelLearning 3 <gua21226@uvg.edu.gt>
+Date:   2026-10-25 23:21:51 -0600
+
+    docs: agregar doc y presentacion
+
+ .gitattributes                   |  18 +
+ BITACORA.md                      |   6 +-
+ CONTRIBUCIONES.md                |  10 +-
+ README.md                        |   2 +-
+ assets/github.svg                |   1 +
+ assets/uvg-logo.png              | Bin 0 -> 115688 bytes
+ historial_git.txt                |   9 +
+ informe.pdf                      | Bin 0 -> 139434 bytes
+ presentacion.md                  | 157 ---------
+ presentacion.pdf                 | Bin 13430 -> 27940 bytes
+ resultados/analisis_errores.csv  |  66 ++++
+ resultados/prediccion_ex.md      | 133 +++----
+ resultados/validacion_propia.csv | 125 +++++++
+ scripts/generar_informe.py       | 541 +++++++++++++++++++++++++++++
+ scripts/generar_presentacion.py  | 725 ++++++++++++++++++++++++++++++++-------
+ 15 files changed, 1444 insertions(+), 349 deletions(-)
+
 commit e2738c5c18f7c3c314bde28f5dea205e7ad04bc4
 Author: GAOV314 <oca231270@uvg.edu.gt>
 Date:   2026-10-25 09:36:00 -0600
@@ -13,14 +36,14 @@ Date:   2026-10-24 18:23:00 -0600
 
     docs: bitacora, contribuciones y prediccion de EX
 
- BITACORA.md                     | 198 +++++++++++++++++++++++++++
- CONTRIBUCIONES.md               |  38 ++++++
- README.md                       | 164 +++++++++++++++++-----
- presentacion.md                 | 157 +++++++++++++++++++++
- presentacion.pdf                | 296 ++++++++++++++++++++++++++++++++++++++++
- resultados/prediccion_ex.md     |  84 ++++++++++++
- scripts/generar_presentacion.py | 179 ++++++++++++++++++++++++
- 7 files changed, 1085 insertions(+), 31 deletions(-)
+ BITACORA.md                     | 198 ++++++++++++++++++++++++++++++++++++++++
+ CONTRIBUCIONES.md               |  38 ++++++++
+ README.md                       | 164 ++++++++++++++++++++++++++-------
+ presentacion.md                 | 157 +++++++++++++++++++++++++++++++
+ presentacion.pdf                | Bin 0 -> 13430 bytes
+ resultados/prediccion_ex.md     |  84 +++++++++++++++++
+ scripts/generar_presentacion.py | 179 ++++++++++++++++++++++++++++++++++++
+ 7 files changed, 789 insertions(+), 31 deletions(-)
 
 commit 91a97be9016398df71526043c73f667062d1d813
 Author: GAOV314 <oca231270@uvg.edu.gt>

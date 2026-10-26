@@ -20,19 +20,25 @@ areas: **datos**, **entrenamiento**, o **validacion y errores**.
 
 ## Estado de la colaboracion
 
-A la fecha de este documento, **todos los commits del repositorio son de una
-sola cuenta**. El enunciado es explicito: un repositorio sin commits de ambos
-integrantes recibe 0 en el componente de colaboracion, que vale 7 puntos.
+Ambos integrantes tienen commits propios en el repositorio, hechos desde su
+cuenta y repartidos a lo largo del desarrollo:
 
-Las filas marcadas como pendientes estan asignadas al segundo integrante y deben
-cerrarse con commits hechos desde su propia cuenta de GitHub. Las areas
-disponibles, y que no se solapan con lo ya hecho, son:
+| Cuenta | Correo | Commits |
+|---|---|---|
+| Cindy Gualim | gua21226@uvg.edu.gt | 8 |
+| GAOV314 (Gadiel Ocana) | oca231270@uvg.edu.gt | 5 |
 
-- **entrenamiento**: correr las dos configuraciones en Colab, documentar los
-  parametros entrenables, el tiempo y las curvas, y elegir el adapter que se
-  entrega;
-- **validacion y errores**: correr las tres variantes de inferencia, clasificar
-  los fallos por categoria e interpretar que cuesta mas peso en la metrica.
+El detalle, con fecha y archivos de cada commit, esta en `historial_git.txt`.
 
-Este documento debe actualizarse con el nombre real y el hash de los commits
-correspondientes antes de la entrega.
+Nota: dos de los commits de Cindy aparecen con nombres de autor distintos
+(`Cindy Gualim` y `MishelLearning 3`) aunque usan el mismo correo. Es la misma
+persona; se puede unificar con `git config user.name`.
+
+## Lo que falta
+
+| Tarea | Responsable | Estado |
+|---|---|---|
+| Correr las dos configuraciones de LoRA en Colab T4 | Gadiel Ocana | pendiente |
+| Copiar el adapter ganador a `adapter/` | Gadiel Ocana | pendiente |
+| Evaluar con adapter y llenar `resultados/configs_lora.md` | Gadiel Ocana | pendiente |
+| Correr las tres variantes de inferencia | Gadiel Ocana | pendiente |

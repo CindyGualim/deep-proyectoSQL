@@ -91,6 +91,8 @@ def main():
     parser.add_argument("--acumular", type=int, default=8)
     parser.add_argument("--qlora", action="store_true",
                         help="Carga el modelo base en 4 bits")
+    parser.add_argument("--max-ejemplos", type=int, default=None,
+                        help="Usa solo los primeros N pares, para una corrida corta")
     parser.add_argument("--pares", default=str(RAIZ / "datos/entrenamiento.jsonl"))
     parser.add_argument("--dev", default=str(RAIZ / "datos/dev.jsonl"))
     parser.add_argument("--esquemas", default=str(RAIZ / "datos/esquemas_show_create.json"))
@@ -142,6 +144,14 @@ def main():
           % (f"{entrenables:,}", f"{totales:,}", 100 * entrenables / totales))
 
     pares, esquemas = cargar_ejemplos(args.pares, args.esquemas)
+    if args.max_ejemplos:
+        # Corrida corta: se barajan con la semilla fija para no quedarse con una
+        # sola base ni con un solo nivel de dificultad.
+        import random
+
+        random.Random(semilla).shuffle(pares)
+        pares = pares[: args.max_ejemplos]
+        print("corrida recortada a %d pares" % len(pares))
     dev, _ = cargar_ejemplos(args.dev, args.esquemas)
     entrenamiento = construir_dataset(pares, esquemas, tokenizer)
     validacion = construir_dataset(dev, esquemas, tokenizer)
