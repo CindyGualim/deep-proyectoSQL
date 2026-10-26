@@ -1,3 +1,12 @@
+commit e2738c5c18f7c3c314bde28f5dea205e7ad04bc4
+Author: GAOV314 <oca231270@uvg.edu.gt>
+Date:   2026-10-25 09:36:00 -0600
+
+    docs: historial de git
+
+ historial_git.txt | 150 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 150 insertions(+)
+
 commit cac0c4f2893085a500fa550db1cf3e0a0282a7e2
 Author: Cindy Gualim <gua21226@uvg.edu.gt>
 Date:   2026-10-24 18:23:00 -0600

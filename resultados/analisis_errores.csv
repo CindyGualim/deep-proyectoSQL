@@ -1,0 +1,66 @@
+etiqueta,id,base,nivel,peso,categoria,pregunta,sql_referencia,sql_generado,error
+baseline,17,veterinaria,dificil,3,join,"Para cada especie, dime cuál es su mascota más pesada. Devuelve el nombre de la especie, el nombre de la mascota y el peso.","WITH ordenadas AS (SELECT e.nombre AS especie, m.nombre AS mascota, m.peso_kg, ROW_NUMBER() OVER (PARTITION BY e.id ORDER BY m.peso_kg DESC) AS pos FROM mascotas m JOIN especies e ON m.especie_id = e.id) SELECT especie, mascota, peso_kg FROM ordenadas WHERE pos = 1","SELECT e.nombre AS Especie, m.nombre AS Mascota, ROUND(m.peso_kg, 2) AS Peso FROM especies e JOIN mascotas m ON e.id = m.especie_id ORDER BY m.peso_kg DESC LIMIT 1",
+baseline,23,hotel,facil,1,columna_inexistente,¿Cuántos huéspedes tienen nivel de lealtad gold? Devuelve la cantidad.,SELECT COUNT(*) AS total FROM guests WHERE loyalty_tier = 'gold',SELECT COUNT(guest_id) FROM guests WHERE loyalty_tier = 'gold',"(1054, ""Unknown column 'guest_id' in 'field list'"")"
+baseline,27,hotel,media,2,join,¿Cuántas reservas tiene cada tipo de habitación? Devuelve el nombre del tipo y la cantidad.,"SELECT rt.name, COUNT(*) AS total FROM bookings b JOIN rooms r ON b.room_id = r.id JOIN room_types rt ON r.type_id = rt.id GROUP BY rt.id, rt.name","SELECT rt.name AS room_type, COUNT(*) AS num_bookings FROM room_types rt JOIN rooms r ON rt.id = r.type_id GROUP BY rt.name",
+baseline,31,hotel,media,2,agregacion,¿Cuánto se facturó por categoría de servicio? Multiplica el precio por la cantidad consumida y devuelve la categoría y el total redondeado a 2 decimales.,"SELECT s.category, ROUND(SUM(s.price * bs.quantity), 2) AS total FROM booking_services bs JOIN services s ON bs.service_id = s.id GROUP BY s.category","SELECT s.category, ROUND(s.price * bs.quantity, 2) AS total FROM services s JOIN booking_services bs ON s.id = bs.service_id GROUP BY s.category","(1055, ""Expression #2 of SELECT list is not in GROUP BY clause and contains nonaggregated column 'hotel.s.price' which is not functionally dependent on columns in GROUP BY clause; this is incompatible"
+baseline,32,hotel,media,2,columna_inexistente,"¿Quiénes son los 3 huéspedes que más han gastado en reservas? Devuelve el nombre y el total gastado, de mayor a menor.","SELECT g.full_name, SUM(b.total_amount) AS gasto FROM bookings b JOIN guests g ON b.guest_id = g.id GROUP BY g.id, g.full_name ORDER BY gasto DESC LIMIT 3","SELECT g.full_name, SUM(bs.total_amount) AS total_spent
+FROM guests g
+JOIN bookings b ON g.id = b.guest_id
+JOIN booking_services bs ON b.id = bs.booking_id
+GROUP BY g.id
+ORDER BY total_spent DESC
+LIMIT 3","(1054, ""Unknown column 'bs.total_amount' in 'field list'"")"
+baseline,33,hotel,dificil,3,columna_inexistente,"¿Qué reservas superan el monto promedio de su propio canal? Devuelve el id de la reserva, el canal y el monto.","SELECT b.id, b.channel, b.total_amount FROM bookings b WHERE b.total_amount > (SELECT AVG(x.total_amount) FROM bookings x WHERE x.channel = b.channel)","SELECT b.id, b.channel, AVG(bs.charged_at) AS avg_charged_at
+FROM bookings b
+JOIN booking_services bs ON b.id = bs.booking_id
+WHERE b.channel = bs.channel
+GROUP BY b.id, b.channel
+HAVING avg_charged_at > (SELECT AVG(total_amount) FROM bookings)","(1054, ""Unknown column 'bs.channel' in 'where clause'"")"
+baseline,34,hotel,dificil,3,join,¿En qué mes de 2024 hubo más entradas al hotel? Devuelve el mes y la cantidad de reservas.,"WITH por_mes AS (SELECT MONTH(check_in) AS mes, COUNT(*) AS total FROM bookings WHERE YEAR(check_in) = 2024 GROUP BY MONTH(check_in)) SELECT mes, total FROM por_mes WHERE total = (SELECT MAX(total) FROM por_mes)","SELECT MONTH(check_in) AS month, COUNT(*) AS total_reservations FROM bookings WHERE YEAR(check_in) = 2024 GROUP BY MONTH(check_in) ORDER BY total_reservations DESC LIMIT 1",
+baseline,35,hotel,dificil,3,columna_inexistente,"Para cada tipo de habitación, dime cuál fue su reserva de mayor monto. Devuelve el nombre del tipo, el id de la reserva y el monto.","WITH ordenadas AS (SELECT rt.name AS tipo, b.id AS reserva, b.total_amount, ROW_NUMBER() OVER (PARTITION BY rt.id ORDER BY b.total_amount DESC) AS pos FROM bookings b JOIN rooms rm ON b.room_id = rm.id JOIN room_types rt ON rm.type_id = rt.id) SELECT tipo, reserva, total_amount FROM ordenadas WHERE pos = 1","WITH TotalSpent AS (
+ SELECT 
+ rt.name AS RoomType,
+ bs.booking_id AS BookingID,
+ SUM(bs.quantity * s.price) AS TotalSpent
+ FROM 
+ room_types rt
+ JOIN 
+ rooms r ON rt.id = r.type_id
+ JOIN 
+ bookings b ON r.id = b.room_id
+ JOIN 
+ booking_services bs ON b.id = bs.booking_id
+ JOIN 
+ services s ON bs.service_id = s.id
+ WHERE 
+ b.status IN ('confirmed', 'checked_in')
+ GROUP BY 
+ rt.name, bs.booking_id
+),
+TopSpendingRooms AS (
+ SELECT 
+ RoomType,
+ BookingID,
+ TotalSpent
+ FROM 
+ TotalSpent
+ ORDER BY 
+ TotalSpent DESC
+)
+SELECT 
+ T2.RoomType,
+ T2.BookingID,
+ T2.TotalSpent
+FROM 
+ TopSpendingRooms T1
+JOIN 
+ room_types T2 ON T1.RoomType = T2.name","(1054, ""Unknown column 'T2.RoomType' in 'field list'"")"
+baseline,36,hotel,dificil,3,agregacion,Devuelve el número de las habitaciones que nunca han tenido una reserva.,SELECT r.room_number FROM rooms r WHERE NOT EXISTS (SELECT 1 FROM bookings b WHERE b.room_id = r.id),SELECT COUNT(*) FROM rooms WHERE id NOT IN (SELECT room_id FROM bookings),
+baseline,37,hotel,dificil,3,columna_inexistente,¿Qué tipos de habitación tienen una calificación promedio mayor a 3? Devuelve el nombre del tipo y el promedio redondeado a 2 decimales.,"SELECT rt.name, ROUND(AVG(rv.score), 2) AS promedio FROM guest_reviews rv JOIN bookings b ON rv.booking_id = b.id JOIN rooms r ON b.room_id = r.id JOIN room_types rt ON r.type_id = rt.id GROUP BY rt.id, rt.name HAVING AVG(rv.score) > 3","SELECT rt.name, AVG(gr.score) AS average_score FROM room_types rt JOIN rooms r ON rt.id = r.type_id JOIN guest_reviews gr ON r.id = gr.room_id WHERE gr.score > 3 GROUP BY rt.name ORDER BY average_score DESC","(1054, ""Unknown column 'gr.room_id' in 'on clause'"")"
+baseline,38,hotel,dificil,3,tabla_inexistente,"Por país, devuelve el total facturado en reservas y qué porcentaje representa del total general, redondeado a 2 decimales.","WITH totales AS (SELECT g.country, SUM(b.total_amount) AS total FROM bookings b JOIN guests g ON b.guest_id = g.id GROUP BY g.country) SELECT country, total, ROUND(100 * total / SUM(total) OVER (), 2) AS porcentaje FROM totales","SELECT T1.country, SUM(T2.total_amount) AS total_facturado, 
+ (SUM(T2.total_amount) / (SELECT SUM(total_amount) FROM bookings)) * 100 AS porcentaje_total
+FROM bookings AS T1
+JOIN payments AS T2 ON T1.id = T2.booking_id
+GROUP BY T1.country","(1146, ""Table 'hotel.payments' doesn't exist"")"
+baseline,39,hotel,dificil,3,sintaxis,"Arma un ranking de huéspedes por noches totales: devuelve el nombre, las noches y la posición en el ranking.","SELECT g.full_name, SUM(b.nights) AS noches, RANK() OVER (ORDER BY SUM(b.nights) DESC) AS posicion FROM bookings b JOIN guests g ON b.guest_id = g.id GROUP BY g.id, g.full_name","SELECT g.full_name, SUM(b.nights) AS total_nights, RANK() OVER (ORDER BY SUM(b.nights) DESC) AS rank FROM guests g JOIN bookings b ON g.id = b.guest_id GROUP BY g.id ORDER BY total_nights DESC","(1064, ""You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'rank FROM guests g JOIN bookings b ON g.id = b.guest_id G"
+baseline,40,hotel,dificil,3,agregacion,"¿Cuántos días dura en promedio una estadía ya cerrada? Calcula la diferencia entre la salida y la entrada, redondeada a 2 decimales.","SELECT ROUND(AVG(DATEDIFF(check_out, check_in)), 2) AS dias_promedio FROM bookings WHERE check_out IS NOT NULL","SELECT ROUND(DATEDIFF(check_out, check_in), 2) AS average_stay_days FROM bookings WHERE status = 'checked_out'",

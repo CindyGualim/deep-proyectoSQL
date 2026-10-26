@@ -12,11 +12,11 @@ areas: **datos**, **entrenamiento**, o **validacion y errores**.
 | Validacion | 2 esquemas nuevos y 40 preguntas escritas a mano | Cindy Gualim | `datos/validacion/`, commit `2f400c3` |
 | Entrega | `solucion.py` y pruebas de la limpieza de salida | Cindy Gualim | `solucion.py`, `scripts/test_extraccion.py` |
 | Validacion | Evaluador de EX ponderada y sus pruebas | Cindy Gualim | `scripts/evaluar.py`, `scripts/test_comparacion.py` |
-| Entrenamiento | Script de LoRA / QLoRA y las dos configuraciones | _(pendiente)_ | `scripts/entrenar.py`, `resultados/configs_lora.md` |
-| Entrenamiento | Corrida en Colab T4 y curvas de loss | _(pendiente)_ | `resultados/loss_r8.csv`, `resultados/loss_r32.csv`, `resultados/curvas_loss.png` |
-| Validacion | Experimento de inferencia: few-shot y autocorreccion | _(pendiente)_ | `resultados/experimento_inferencia.md` |
-| Validacion | Analisis de errores por categoria | _(pendiente)_ | `scripts/analizar_errores.py`, `resultados/analisis_errores.csv` |
-| Entrega | Presentacion y prediccion de EX | _(pendiente)_ | `presentacion.pdf`, `resultados/prediccion_ex.md` |
+| Entrenamiento | Script de LoRA / QLoRA y las dos configuraciones | Gadiel Ocana | `scripts/entrenar.py`, `resultados/configs_lora.md` |
+| Entrenamiento | Corrida en Colab T4 y curvas de loss | Gadiel Ocana | `resultados/loss_r8.csv`, `resultados/loss_r32.csv`, `resultados/curvas_loss.png` |
+| Validacion | Experimento de inferencia: few-shot y autocorreccion | Gadiel Ocana | `resultados/experimento_inferencia.md` |
+| Validacion | Analisis de errores por categoria | Gadiel Ocana | `scripts/analizar_errores.py`, `resultados/analisis_errores.csv` |
+| Entrega | Presentacion y prediccion de EX | Gadiel Ocana | `presentacion.pdf`, `resultados/prediccion_ex.md` |
 
 ## Estado de la colaboracion
 

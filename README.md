@@ -5,7 +5,7 @@ espanol a consultas MySQL 8.4.10, dado el esquema de la base en formato `SHOW CR
 
 Universidad del Valle — Deep Learning 2026 — Kevin Recinos.
 
-**Integrantes:** Cindy Gualim · _(pendiente: nombre del segundo integrante)_
+**Integrantes:** Cindy Gualim · Gadiel Ocana
 
 ## Ejecucion rapida
 

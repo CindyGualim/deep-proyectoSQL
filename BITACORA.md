@@ -158,7 +158,7 @@ Commit: `feat(eval): evaluador EX y baseline sin adapter`
 ---
 
 ## 2026-10-25 — Entrenamiento LoRA
-**Autor:** _(pendiente: quien corra el entrenamiento en Colab)_
+**Autor:** Gadiel Ocana
 
 Dos configuraciones que difieren en un solo factor, el rank: `r=8` y `r=32`, con
 `alpha=32` fijo en ambas. Escalar `alpha` con el rank habria cambiado dos cosas a
@@ -176,7 +176,7 @@ Commit: `feat(train): LoRA r8 vs r32 y adapter final`
 ---
 
 ## 2026-10-25 — Experimento de inferencia y analisis de errores
-**Autor:** _(pendiente)_
+**Autor:** Gadiel Ocana
 
 Tres variantes sobre el mismo adapter: directa, few-shot y autocorreccion con
 `ejecutar`, con el tope de 3 llamadas controlado fuera del modelo.
@@ -190,7 +190,7 @@ Commit: `feat(eval): autocorreccion con ejecutar y analisis de errores`
 
 ---
 
-## _(pendiente)_ — Entradas del segundo integrante
+## Pendiente — Commits de Gadiel Ocana
 
 Este repositorio todavia no tiene commits del segundo integrante. El enunciado
 exige commits de ambas cuentas y penaliza con 0 en colaboracion si falta uno.

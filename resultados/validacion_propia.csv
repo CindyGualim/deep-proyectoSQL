@@ -1,0 +1,125 @@
+etiqueta,id,base,nivel,peso,orden_importa,pregunta,sql_referencia,sql_generado,ok,segundos,error
+baseline,1,veterinaria,facil,1,False,¿Cuántas mascotas hay registradas en la clínica? Devuelve solo el total.,SELECT COUNT(*) AS total FROM mascotas,SELECT COUNT(*) FROM mascotas,1,17.39,
+baseline,2,veterinaria,facil,1,False,Lista el nombre y el peso de las mascotas que pesan más de 40 kilogramos.,"SELECT nombre, peso_kg FROM mascotas WHERE peso_kg > 40","SELECT nombre, peso_kg FROM mascotas WHERE peso_kg > 40",1,21.58,
+baseline,3,veterinaria,facil,1,False,¿Cuántas consultas se atendieron por emergencia? Devuelve la cantidad.,SELECT COUNT(*) AS total FROM consultas WHERE motivo = 'emergencia',SELECT COUNT(*) FROM consultas WHERE motivo = 'emergencia',1,20.34,
+baseline,4,veterinaria,facil,1,False,Dame el nombre y el sexo de las mascotas que están esterilizadas.,"SELECT nombre, sexo FROM mascotas WHERE esterilizado = 1","SELECT nombre, sexo FROM mascotas WHERE esterilizado = 1",1,21.68,
+baseline,5,veterinaria,facil,1,False,¿Cuál es el costo promedio de una consulta? Redondea a 2 decimales.,"SELECT ROUND(AVG(costo), 2) AS costo_promedio FROM consultas",SELECT AVG(costo) AS costo_promedio FROM consultas,1,20.2,
+baseline,6,veterinaria,facil,1,True,"Muestra la fecha y el costo de las 5 consultas más caras, de mayor a menor costo.","SELECT fecha, costo FROM consultas ORDER BY costo DESC LIMIT 5","SELECT fecha, ROUND(costo, 2) FROM consultas ORDER BY costo DESC LIMIT 5",1,21.68,
+baseline,7,veterinaria,facil,1,False,¿En qué ciudades viven los dueños? Lista las ciudades sin repetirlas.,SELECT DISTINCT ciudad FROM duenos,SELECT DISTINCT ciudad FROM duenos,1,18.94,
+baseline,8,veterinaria,media,2,False,¿Cuántas mascotas hay de cada especie? Devuelve el nombre de la especie y la cantidad.,"SELECT e.nombre, COUNT(*) AS total FROM mascotas m JOIN especies e ON m.especie_id = e.id GROUP BY e.id, e.nombre","SELECT e.nombre, COUNT(m.id) AS cantidad FROM especies e JOIN mascotas m ON e.id = m.especie_id GROUP BY e.nombre",1,25.2,
+baseline,9,veterinaria,media,2,False,Devuelve el nombre de cada veterinario junto con el total que ha facturado en consultas.,"SELECT v.nombre, SUM(c.costo) AS total FROM consultas c JOIN veterinarios v ON c.veterinario_id = v.id GROUP BY v.id, v.nombre","WITH TotalFactura AS (
+ SELECT v.nombre, SUM(c.costo) as TotalFactura
+ FROM veterinarios v
+ JOIN consultas c ON v.id = c.veterinario_id
+ GROUP BY v.id
+)
+SELECT T1.nombre, T1.TotalFactura
+FROM TotalFactura T1",1,34.81,
+baseline,10,veterinaria,media,2,False,¿Cuál es el costo promedio de consulta según el motivo? Devuelve el motivo y el promedio redondeado a 2 decimales.,"SELECT motivo, ROUND(AVG(costo), 2) AS promedio FROM consultas GROUP BY motivo","SELECT motivo, ROUND(AVG(costo), 2) AS costo_promedio FROM consultas GROUP BY motivo",1,22.8,
+baseline,11,veterinaria,media,2,False,¿Qué dueños tienen más de 2 mascotas? Devuelve su nombre y cuántas mascotas tienen.,"SELECT d.nombre, COUNT(*) AS mascotas FROM mascotas m JOIN duenos d ON m.dueno_id = d.id GROUP BY d.id, d.nombre HAVING COUNT(*) > 2","SELECT d.nombre, COUNT(m.id) AS cantidad_mascotas
+FROM duenos d
+JOIN mascotas m ON d.id = m.dueno_id
+GROUP BY d.id
+HAVING COUNT(m.id) > 2",1,29.79,
+baseline,12,veterinaria,media,2,False,"Muestra el nombre de la mascota y el nombre de su dueño, solo para las mascotas nacidas después del 1 de enero de 2020.","SELECT m.nombre, d.nombre AS dueno FROM mascotas m JOIN duenos d ON m.dueno_id = d.id WHERE m.fecha_nacimiento > '2020-01-01'","SELECT m.nombre, d.nombre FROM mascotas m JOIN duenos d ON m.dueno_id = d.id WHERE m.fecha_nacimiento > '2020-01-01'",1,27.39,
+baseline,13,veterinaria,media,2,False,¿Cuántas consultas atendió cada veterinario durante 2025? Devuelve el nombre y la cantidad.,"SELECT v.nombre, COUNT(*) AS total FROM consultas c JOIN veterinarios v ON c.veterinario_id = v.id WHERE YEAR(c.fecha) = 2025 GROUP BY v.id, v.nombre","SELECT v.nombre, COUNT(c.id) AS cantidad FROM veterinarios v JOIN consultas c ON v.id = c.veterinario_id WHERE YEAR(c.fecha) = 2025 GROUP BY v.nombre",1,27.86,
+baseline,14,veterinaria,media,2,True,"Dame los 3 veterinarios que más consultas han atendido, con su nombre y la cantidad, de mayor a menor.","SELECT v.nombre, COUNT(*) AS total FROM consultas c JOIN veterinarios v ON c.veterinario_id = v.id GROUP BY v.id, v.nombre ORDER BY total DESC LIMIT 3","WITH VeterinariosAtendidos AS (
+ SELECT v.nombre, COUNT(c.id) as total_consultas
+ FROM veterinarios v
+ JOIN consultas c ON v.id = c.veterinario_id
+ GROUP BY v.id
+)
+SELECT v.nombre, v.total_consultas
+FROM VeterinariosAtendidos v
+ORDER BY v.total_consultas DESC
+LIMIT 3",1,39.05,
+baseline,15,veterinaria,dificil,3,False,"¿Qué mascotas pesan más que el promedio de su propia especie? Devuelve el nombre de la mascota, el nombre de la especie y el peso.","SELECT m.nombre, e.nombre AS especie, m.peso_kg FROM mascotas m JOIN especies e ON m.especie_id = e.id WHERE m.peso_kg > (SELECT AVG(x.peso_kg) FROM mascotas x WHERE x.especie_id = m.especie_id)","SELECT m.nombre, e.nombre AS especie, m.peso_kg FROM mascotas m JOIN especies e ON m.especie_id = e.id WHERE m.peso_kg > (SELECT AVG(peso_kg) FROM mascotas WHERE especie_id = m.especie_id)",1,32.74,
+baseline,16,veterinaria,dificil,3,False,¿Cuál es el motivo de consulta que más dinero ha facturado? Devuelve el motivo y el total facturado.,"WITH facturacion AS (SELECT motivo, SUM(costo) AS total FROM consultas GROUP BY motivo) SELECT motivo, total FROM facturacion WHERE total = (SELECT MAX(total) FROM facturacion)","SELECT c.motivo, SUM(c.costo) AS total_facturado
+FROM consultas c
+GROUP BY c.motivo
+ORDER BY total_facturado DESC
+LIMIT 1",1,28.49,
+baseline,17,veterinaria,dificil,3,False,"Para cada especie, dime cuál es su mascota más pesada. Devuelve el nombre de la especie, el nombre de la mascota y el peso.","WITH ordenadas AS (SELECT e.nombre AS especie, m.nombre AS mascota, m.peso_kg, ROW_NUMBER() OVER (PARTITION BY e.id ORDER BY m.peso_kg DESC) AS pos FROM mascotas m JOIN especies e ON m.especie_id = e.id) SELECT especie, mascota, peso_kg FROM ordenadas WHERE pos = 1","SELECT e.nombre AS Especie, m.nombre AS Mascota, ROUND(m.peso_kg, 2) AS Peso FROM especies e JOIN mascotas m ON e.id = m.especie_id ORDER BY m.peso_kg DESC LIMIT 1",0,31.76,
+baseline,18,veterinaria,dificil,3,False,Devuelve el nombre de los veterinarios que no tienen ninguna consulta registrada.,SELECT v.nombre FROM veterinarios v WHERE NOT EXISTS (SELECT 1 FROM consultas c WHERE c.veterinario_id = v.id),SELECT nombre FROM veterinarios WHERE id NOT IN (SELECT veterinario_id FROM consultas),1,20.39,
+baseline,19,veterinaria,dificil,3,True,"¿Cuánto se facturó en consultas cada año? Devuelve el año y el total, ordenado por año.","WITH por_anio AS (SELECT YEAR(fecha) AS anio, SUM(costo) AS total FROM consultas GROUP BY YEAR(fecha)) SELECT anio, total FROM por_anio ORDER BY anio","SELECT YEAR(fecha) AS Año, SUM(costo) AS TotalFacturado
+FROM consultas
+GROUP BY YEAR(fecha)
+ORDER BY Año",1,25.56,
+baseline,20,veterinaria,dificil,3,False,¿Qué mascotas han tenido más de una consulta? Devuelve el nombre de la mascota y cuántas consultas tiene.,"SELECT m.nombre, COUNT(*) AS consultas FROM consultas c JOIN mascotas m ON c.mascota_id = m.id GROUP BY m.id, m.nombre HAVING COUNT(*) > 1","SELECT m.nombre, COUNT(c.id) AS num_consultas
+FROM mascotas m
+JOIN consultas c ON m.id = c.mascota_id
+GROUP BY m.id
+HAVING COUNT(c.id) > 1
+ORDER BY num_consultas DESC",1,30.31,
+baseline,21,hotel,facil,1,False,¿Cuántas habitaciones tiene el hotel? Devuelve solo el total.,SELECT COUNT(*) AS total FROM rooms,SELECT COUNT(*) FROM rooms,1,15.27,
+baseline,22,hotel,facil,1,False,Lista el número de habitación y el piso de las habitaciones que están en mantenimiento.,"SELECT room_number, floor FROM rooms WHERE status = 'maintenance'","SELECT room_number, floor FROM rooms WHERE status = 'maintenance'",1,17.94,
+baseline,23,hotel,facil,1,False,¿Cuántos huéspedes tienen nivel de lealtad gold? Devuelve la cantidad.,SELECT COUNT(*) AS total FROM guests WHERE loyalty_tier = 'gold',SELECT COUNT(guest_id) FROM guests WHERE loyalty_tier = 'gold',0,20.22,"(1054, ""Unknown column 'guest_id' in 'field list'"")"
+baseline,24,hotel,facil,1,False,Muestra el nombre y el precio de los servicios que cuestan más de 100 dólares.,"SELECT name, price FROM services WHERE price > 100","SELECT name, price FROM services WHERE price > 100",1,20.08,
+baseline,25,hotel,facil,1,False,¿Cuál es el monto más alto cobrado en una reserva? Devuelve un solo valor.,SELECT MAX(total_amount) AS maximo FROM bookings,SELECT MAX(total_amount) FROM bookings,1,18.24,
+baseline,26,hotel,facil,1,True,"Dame las 5 reservas de más noches: el id de la reserva y el número de noches, de mayor a menor.","SELECT id, nights FROM bookings ORDER BY nights DESC LIMIT 5","SELECT b.id, b.nights FROM bookings b ORDER BY b.nights DESC LIMIT 5",1,21.72,
+baseline,27,hotel,media,2,False,¿Cuántas reservas tiene cada tipo de habitación? Devuelve el nombre del tipo y la cantidad.,"SELECT rt.name, COUNT(*) AS total FROM bookings b JOIN rooms r ON b.room_id = r.id JOIN room_types rt ON r.type_id = rt.id GROUP BY rt.id, rt.name","SELECT rt.name AS room_type, COUNT(*) AS num_bookings FROM room_types rt JOIN rooms r ON rt.id = r.type_id GROUP BY rt.name",0,23.63,
+baseline,28,hotel,media,2,False,¿De qué países vienen más de 3 reservas? Devuelve el país y la cantidad de reservas.,"SELECT g.country, COUNT(*) AS total FROM bookings b JOIN guests g ON b.guest_id = g.id GROUP BY g.country HAVING COUNT(*) > 3","SELECT T1.country, COUNT(*) AS reservation_count FROM guests AS T1 JOIN bookings AS T2 ON T1.id = T2.guest_id GROUP BY T1.country HAVING COUNT(*) > 3",1,27.0,
+baseline,29,hotel,media,2,False,¿Cuál es el monto promedio de reserva según el canal? Devuelve el canal y el promedio redondeado a 2 decimales.,"SELECT channel, ROUND(AVG(total_amount), 2) AS promedio FROM bookings GROUP BY channel","SELECT channel, ROUND(AVG(total_amount), 2) AS average_total_amount FROM bookings GROUP BY channel",1,21.37,
+baseline,30,hotel,media,2,False,Muestra el nombre del huésped y el número de habitación de las reservas que fueron canceladas.,"SELECT g.full_name, r.room_number FROM bookings b JOIN guests g ON b.guest_id = g.id JOIN rooms r ON b.room_id = r.id WHERE b.status = 'cancelled'","SELECT g.full_name, r.room_number FROM bookings b JOIN guests g ON b.guest_id = g.id JOIN rooms r ON b.room_id = r.id WHERE b.status = 'cancelled'",1,29.07,
+baseline,31,hotel,media,2,False,¿Cuánto se facturó por categoría de servicio? Multiplica el precio por la cantidad consumida y devuelve la categoría y el total redondeado a 2 decimales.,"SELECT s.category, ROUND(SUM(s.price * bs.quantity), 2) AS total FROM booking_services bs JOIN services s ON bs.service_id = s.id GROUP BY s.category","SELECT s.category, ROUND(s.price * bs.quantity, 2) AS total FROM services s JOIN booking_services bs ON s.id = bs.service_id GROUP BY s.category",0,29.55,"(1055, ""Expression #2 of SELECT list is not in GROUP BY clause and contains nonaggregated column 'hotel.s.price' which is not functionally dependent on columns in GROUP BY clause; this is incompatible"
+baseline,32,hotel,media,2,True,"¿Quiénes son los 3 huéspedes que más han gastado en reservas? Devuelve el nombre y el total gastado, de mayor a menor.","SELECT g.full_name, SUM(b.total_amount) AS gasto FROM bookings b JOIN guests g ON b.guest_id = g.id GROUP BY g.id, g.full_name ORDER BY gasto DESC LIMIT 3","SELECT g.full_name, SUM(bs.total_amount) AS total_spent
+FROM guests g
+JOIN bookings b ON g.id = b.guest_id
+JOIN booking_services bs ON b.id = bs.booking_id
+GROUP BY g.id
+ORDER BY total_spent DESC
+LIMIT 3",0,34.32,"(1054, ""Unknown column 'bs.total_amount' in 'field list'"")"
+baseline,33,hotel,dificil,3,False,"¿Qué reservas superan el monto promedio de su propio canal? Devuelve el id de la reserva, el canal y el monto.","SELECT b.id, b.channel, b.total_amount FROM bookings b WHERE b.total_amount > (SELECT AVG(x.total_amount) FROM bookings x WHERE x.channel = b.channel)","SELECT b.id, b.channel, AVG(bs.charged_at) AS avg_charged_at
+FROM bookings b
+JOIN booking_services bs ON b.id = bs.booking_id
+WHERE b.channel = bs.channel
+GROUP BY b.id, b.channel
+HAVING avg_charged_at > (SELECT AVG(total_amount) FROM bookings)",0,34.22,"(1054, ""Unknown column 'bs.channel' in 'where clause'"")"
+baseline,34,hotel,dificil,3,False,¿En qué mes de 2024 hubo más entradas al hotel? Devuelve el mes y la cantidad de reservas.,"WITH por_mes AS (SELECT MONTH(check_in) AS mes, COUNT(*) AS total FROM bookings WHERE YEAR(check_in) = 2024 GROUP BY MONTH(check_in)) SELECT mes, total FROM por_mes WHERE total = (SELECT MAX(total) FROM por_mes)","SELECT MONTH(check_in) AS month, COUNT(*) AS total_reservations FROM bookings WHERE YEAR(check_in) = 2024 GROUP BY MONTH(check_in) ORDER BY total_reservations DESC LIMIT 1",0,27.28,
+baseline,35,hotel,dificil,3,False,"Para cada tipo de habitación, dime cuál fue su reserva de mayor monto. Devuelve el nombre del tipo, el id de la reserva y el monto.","WITH ordenadas AS (SELECT rt.name AS tipo, b.id AS reserva, b.total_amount, ROW_NUMBER() OVER (PARTITION BY rt.id ORDER BY b.total_amount DESC) AS pos FROM bookings b JOIN rooms rm ON b.room_id = rm.id JOIN room_types rt ON rm.type_id = rt.id) SELECT tipo, reserva, total_amount FROM ordenadas WHERE pos = 1","WITH TotalSpent AS (
+ SELECT 
+ rt.name AS RoomType,
+ bs.booking_id AS BookingID,
+ SUM(bs.quantity * s.price) AS TotalSpent
+ FROM 
+ room_types rt
+ JOIN 
+ rooms r ON rt.id = r.type_id
+ JOIN 
+ bookings b ON r.id = b.room_id
+ JOIN 
+ booking_services bs ON b.id = bs.booking_id
+ JOIN 
+ services s ON bs.service_id = s.id
+ WHERE 
+ b.status IN ('confirmed', 'checked_in')
+ GROUP BY 
+ rt.name, bs.booking_id
+),
+TopSpendingRooms AS (
+ SELECT 
+ RoomType,
+ BookingID,
+ TotalSpent
+ FROM 
+ TotalSpent
+ ORDER BY 
+ TotalSpent DESC
+)
+SELECT 
+ T2.RoomType,
+ T2.BookingID,
+ T2.TotalSpent
+FROM 
+ TopSpendingRooms T1
+JOIN 
+ room_types T2 ON T1.RoomType = T2.name",0,76.12,"(1054, ""Unknown column 'T2.RoomType' in 'field list'"")"
+baseline,36,hotel,dificil,3,False,Devuelve el número de las habitaciones que nunca han tenido una reserva.,SELECT r.room_number FROM rooms r WHERE NOT EXISTS (SELECT 1 FROM bookings b WHERE b.room_id = r.id),SELECT COUNT(*) FROM rooms WHERE id NOT IN (SELECT room_id FROM bookings),0,19.79,
+baseline,37,hotel,dificil,3,False,¿Qué tipos de habitación tienen una calificación promedio mayor a 3? Devuelve el nombre del tipo y el promedio redondeado a 2 decimales.,"SELECT rt.name, ROUND(AVG(rv.score), 2) AS promedio FROM guest_reviews rv JOIN bookings b ON rv.booking_id = b.id JOIN rooms r ON b.room_id = r.id JOIN room_types rt ON r.type_id = rt.id GROUP BY rt.id, rt.name HAVING AVG(rv.score) > 3","SELECT rt.name, AVG(gr.score) AS average_score FROM room_types rt JOIN rooms r ON rt.id = r.type_id JOIN guest_reviews gr ON r.id = gr.room_id WHERE gr.score > 3 GROUP BY rt.name ORDER BY average_score DESC",0,30.84,"(1054, ""Unknown column 'gr.room_id' in 'on clause'"")"
+baseline,38,hotel,dificil,3,False,"Por país, devuelve el total facturado en reservas y qué porcentaje representa del total general, redondeado a 2 decimales.","WITH totales AS (SELECT g.country, SUM(b.total_amount) AS total FROM bookings b JOIN guests g ON b.guest_id = g.id GROUP BY g.country) SELECT country, total, ROUND(100 * total / SUM(total) OVER (), 2) AS porcentaje FROM totales","SELECT T1.country, SUM(T2.total_amount) AS total_facturado, 
+ (SUM(T2.total_amount) / (SELECT SUM(total_amount) FROM bookings)) * 100 AS porcentaje_total
+FROM bookings AS T1
+JOIN payments AS T2 ON T1.id = T2.booking_id
+GROUP BY T1.country",0,34.64,"(1146, ""Table 'hotel.payments' doesn't exist"")"
+baseline,39,hotel,dificil,3,False,"Arma un ranking de huéspedes por noches totales: devuelve el nombre, las noches y la posición en el ranking.","SELECT g.full_name, SUM(b.nights) AS noches, RANK() OVER (ORDER BY SUM(b.nights) DESC) AS posicion FROM bookings b JOIN guests g ON b.guest_id = g.id GROUP BY g.id, g.full_name","SELECT g.full_name, SUM(b.nights) AS total_nights, RANK() OVER (ORDER BY SUM(b.nights) DESC) AS rank FROM guests g JOIN bookings b ON g.id = b.guest_id GROUP BY g.id ORDER BY total_nights DESC",0,30.15,"(1064, ""You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'rank FROM guests g JOIN bookings b ON g.id = b.guest_id G"
+baseline,40,hotel,dificil,3,False,"¿Cuántos días dura en promedio una estadía ya cerrada? Calcula la diferencia entre la salida y la entrada, redondeada a 2 decimales.","SELECT ROUND(AVG(DATEDIFF(check_out, check_in)), 2) AS dias_promedio FROM bookings WHERE check_out IS NOT NULL","SELECT ROUND(DATEDIFF(check_out, check_in), 2) AS average_stay_days FROM bookings WHERE status = 'checked_out'",0,23.44,
